@@ -25,12 +25,6 @@ A modern, full-featured personal knowledge management system built with Next.js,
 
 ## 🚀 Getting Started
 
-### Prerequisites
-
-- Node.js 18+
-- npm or pnpm
-- SQLite (included)
-
 ### Installation
 
 1. **Clone the repository**
@@ -44,8 +38,6 @@ A modern, full-featured personal knowledge management system built with Next.js,
 
    ```bash
    npm install
-   # or
-   pnpm install
    ```
 
 3. **Set up environment variables**
