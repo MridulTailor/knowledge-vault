@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entries       Entry[]
+  relationships Relationship[] @relation("RelationshipFrom")
+  
+  @@map("users")
+}
+
+enum EntryType {
+  ARTICLE
+  CODE_SNIPPET
+  BOOKMARK
+}
+
+model Entry {
+  id          String    @id @default(cuid())
+  title       String
+  content     String
+  type        EntryType
+  language    String?   // For code snippets
+  url         String?   // For bookmarks
+  metadata    String?   // JSON string for bookmark metadata
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  tags        EntryTag[]
+  fromRelations Relationship[] @relation("FromEntry")
+  toRelations   Relationship[] @relation("ToEntry")
+  
+  @@map("entries")
+}
+
+model Tag {
+  id        String     @id @default(cuid())
+  name      String
+  color     String?
+  createdAt DateTime   @default(now())
+  
+  entries   EntryTag[]
+  
+  @@unique([name])
+  @@map("tags")
+}
+
+model EntryTag {
+  entryId String
+  tagId   String
+  
+  entry   Entry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  tag     Tag   @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@id([entryId, tagId])
+  @@map("entry_tags")
+}
+
+enum RelationshipType {
+  RELATED_TO
+  SOURCE_FOR
+  INSPIRED_BY
+  REFERENCES
+  CONTRADICTS
+  BUILDS_ON
+}
+
+model Relationship {
+  id          String           @id @default(cuid())
+  type        RelationshipType @default(RELATED_TO)
+  description String?
+  createdAt   DateTime         @default(now())
+  
+  fromEntryId String
+  toEntryId   String
+  userId      String
+  
+  fromEntry   Entry @relation("FromEntry", fields: [fromEntryId], references: [id], onDelete: Cascade)
+  toEntry     Entry @relation("ToEntry", fields: [toEntryId], references: [id], onDelete: Cascade)
+  user        User  @relation("RelationshipFrom", fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([fromEntryId, toEntryId, type])
+  @@map("relationships")
+}
