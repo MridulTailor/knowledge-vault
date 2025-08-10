@@ -263,7 +263,8 @@ export function EntryDetail({
                           {relation.toEntry.title}
                         </span>
                         <Badge variant="outline" className="text-xs">
-                          {relation.type.toLowerCase().replace("_", " ")}
+                          {relation.type?.toLowerCase().replace("_", " ") ||
+                            "related"}
                         </Badge>
                       </div>
                       {relation.description && (
@@ -295,7 +296,8 @@ export function EntryDetail({
                           {relation.fromEntry.title}
                         </span>
                         <Badge variant="outline" className="text-xs">
-                          {relation.type.toLowerCase().replace("_", " ")}
+                          {relation.type?.toLowerCase().replace("_", " ") ||
+                            "related"}
                         </Badge>
                       </div>
                       {relation.description && (

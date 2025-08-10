@@ -32,6 +32,8 @@ const ENTRIES_QUERY = `
       }
       fromRelations {
         id
+        type
+        description
         toEntry {
           id
           title
@@ -39,6 +41,8 @@ const ENTRIES_QUERY = `
       }
       toRelations {
         id
+        type
+        description
         fromEntry {
           id
           title

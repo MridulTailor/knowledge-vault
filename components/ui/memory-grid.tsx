@@ -16,10 +16,14 @@ interface Memory {
   tags: Array<{ id: string; name: string; color?: string }>;
   fromRelations: Array<{
     id: string;
+    type?: string;
+    description?: string;
     toEntry: { id: string; title: string };
   }>;
   toRelations: Array<{
     id: string;
+    type?: string;
+    description?: string;
     fromEntry: { id: string; title: string };
   }>;
 }
