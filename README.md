@@ -100,31 +100,11 @@ A modern, full-featured personal knowledge management system built with Next.js,
 
 ### Tech Stack
 
-- **Frontend**: Next.js 14 with TypeScript and Tailwind CSS
+- **Frontend**: Next.js 14 with TypeScript, Tailwind CSS, and Space Grotesk font
 - **Backend**: Next.js API routes with GraphQL (Apollo Server)
 - **Database**: SQLite with Prisma ORM
 - **Authentication**: JWT tokens with bcrypt password hashing
 - **Styling**: Tailwind CSS with shadcn/ui components
-
-### Project Structure
-
-```
-knowledge-vault/
-├── app/                    # Next.js app directory
-│   ├── api/graphql/       # GraphQL API endpoint
-│   ├── auth/              # Authentication pages
-│   └── dashboard/         # Main application dashboard
-├── components/            # React components
-│   ├── auth/              # Authentication forms
-│   ├── entries/           # Entry management components
-│   ├── relationships/     # Relationship management
-│   └── ui/                # Reusable UI components
-├── lib/                   # Utilities and configuration
-│   ├── graphql/           # GraphQL schema and resolvers
-│   └── hooks/             # Custom React hooks
-├── prisma/                # Database schema and migrations
-└── styles/                # Global styles
-```
 
 ### Database Schema
 
@@ -173,22 +153,6 @@ knowledge-vault/
 ## 📝 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🚀 Deployment
-
-### Vercel (Recommended)
-
-1. Connect your GitHub repository to Vercel
-2. Add environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
-
-### Other Platforms
-
-The app can be deployed to any platform that supports Node.js applications. Make sure to:
-
-1. Set up environment variables
-2. Run database migrations
-3. Build the application (`npm run build`)
 
 ---
 
