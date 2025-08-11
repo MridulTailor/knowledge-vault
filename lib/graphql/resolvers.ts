@@ -19,13 +19,41 @@ const requireAuth = (context: Context) => {
   return context.user
 }
 
+// Helper function to serialize dates properly
+const serializeDate = (date: Date | string): string => {
+  if (!date) return ""
+  const dateObj = typeof date === "string" ? new Date(date) : date
+  return dateObj.toISOString()
+}
+
+// Helper to serialize entry with proper dates
+const serializeEntry = (entry: any) => {
+  if (!entry) return entry
+  return {
+    ...entry,
+    createdAt: serializeDate(entry.createdAt),
+    updatedAt: serializeDate(entry.updatedAt),
+  }
+}
+
+// Helper to serialize user with proper dates  
+const serializeUser = (user: any) => {
+  if (!user) return user
+  return {
+    ...user,
+    createdAt: serializeDate(user.createdAt),
+    entries: user.entries?.map(serializeEntry) || [],
+  }
+}
+
 export const resolvers = {
   Query: {
     me: async (_: any, __: any, context: Context) => {
       const user = requireAuth(context)
-      return prisma.user.findUnique({
+      const userData = await prisma.user.findUnique({
         where: { id: user.userId },
       })
+      return userData ? serializeUser(userData) : null
     },
 
     entries: async (
@@ -45,8 +73,8 @@ export const resolvers = {
 
       if (args.search) {
         where.OR = [
-          { title: { contains: args.search, mode: "insensitive" } },
-          { content: { contains: args.search, mode: "insensitive" } },
+          { title: { contains: args.search } },
+          { content: { contains: args.search } },
         ]
       }
 
@@ -64,7 +92,7 @@ export const resolvers = {
         }
       }
 
-      return prisma.entry.findMany({
+      const entries = await prisma.entry.findMany({
         where,
         orderBy: { updatedAt: "desc" },
         include: {
@@ -79,11 +107,12 @@ export const resolvers = {
           },
         },
       })
+      return entries.map(serializeEntry)
     },
 
     entry: async (_: any, args: { id: string }, context: Context) => {
       const user = requireAuth(context)
-      return prisma.entry.findFirst({
+      const entry = await prisma.entry.findFirst({
         where: { id: args.id, userId: user.userId },
         include: {
           tags: { include: { tag: true } },
@@ -95,6 +124,7 @@ export const resolvers = {
           },
         },
       })
+      return entry ? serializeEntry(entry) : null
     },
 
     tags: async (_: any, __: any, context: Context) => {
@@ -180,7 +210,7 @@ export const resolvers = {
         },
       })
 
-      return entry
+      return serializeEntry(entry)
     },
 
     updateEntry: async (_: any, args: { id: string; input: any }, context: Context) => {
@@ -202,7 +232,7 @@ export const resolvers = {
         })
       }
 
-      return prisma.entry.update({
+      const updatedEntry = await prisma.entry.update({
         where: { id: args.id },
         data: {
           ...updateData,
@@ -225,6 +255,8 @@ export const resolvers = {
           toRelations: { include: { fromEntry: true } },
         },
       })
+
+      return serializeEntry(updatedEntry)
     },
 
     deleteEntry: async (_: any, args: { id: string }, context: Context) => {
