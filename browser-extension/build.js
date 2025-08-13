@@ -2,6 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { execSync } = require("child_process");
 
 console.log("Building Knowledge Vault Browser Extension...");
 
@@ -28,15 +29,30 @@ iconSizes.forEach((size) => {
   }
 });
 
-// Validate manifest
-const manifestPath = path.join(__dirname, "manifest.json");
-try {
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-  console.log(
-    `✅ Manifest valid - Extension: ${manifest.name} v${manifest.version}`
-  );
-} catch (error) {
-  console.error("❌ Manifest validation failed:", error.message);
+// Function to validate manifest
+function validateManifest(manifestPath, browser) {
+  try {
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    console.log(
+      `✅ ${browser} Manifest valid - Extension: ${manifest.name} v${manifest.version}`
+    );
+    return true;
+  } catch (error) {
+    console.error(`❌ ${browser} Manifest validation failed:`, error.message);
+    return false;
+  }
+}
+
+// Validate both manifests
+const chromeManifestPath = path.join(__dirname, "manifest.json");
+const firefoxManifestPath = path.join(__dirname, "manifest-firefox.json");
+
+let manifestsValid = true;
+manifestsValid &= validateManifest(chromeManifestPath, "Chrome");
+manifestsValid &= validateManifest(firefoxManifestPath, "Firefox");
+
+if (!manifestsValid) {
+  console.error("❌ Build failed - invalid manifests");
   process.exit(1);
 }
 
@@ -75,20 +91,69 @@ console.log("\nNext steps:");
 console.log(
   "1. Convert icons/icon.svg to PNG files (16x16, 32x32, 48x48, 128x128)"
 );
-console.log("2. Load the extension in Chrome:");
+console.log("\n📦 For Chrome:");
 console.log("   - Go to chrome://extensions/");
 console.log("   - Enable Developer mode");
 console.log('   - Click "Load unpacked" and select this folder');
-console.log("3. Configure your Knowledge Vault server URL and auth token");
-console.log("\nFor production:");
-console.log('- Run "npm run pack" to create a zip file');
-console.log("- Upload to Chrome Web Store");
+console.log("   - Uses manifest.json");
 
-// Check if we can create a zip
-const { execSync } = require("child_process");
+console.log("\n🦊 For Firefox:");
+console.log("   - Go to about:debugging#/runtime/this-firefox");
+console.log('   - Click "Load Temporary Add-on"');
+console.log("   - Select manifest-firefox.json");
+console.log("   - Or create Firefox build: npm run pack:firefox");
+
+console.log("\n3. Configure your Knowledge Vault server URL and auth token");
+
+// Function to create distribution packages
+function createDistributionZip(browser) {
+  try {
+    execSync("which zip", { stdio: "ignore" });
+
+    const manifestFile =
+      browser === "firefox" ? "manifest-firefox.json" : "manifest.json";
+    const zipName = `knowledge-vault-extension-${browser}.zip`;
+
+    // Create temporary manifest.json for the build
+    if (browser === "firefox") {
+      fs.copyFileSync("manifest-firefox.json", "manifest.json.tmp");
+      fs.copyFileSync("manifest-firefox.json", "manifest.json");
+    }
+
+    // Create zip excluding unnecessary files
+    const excludeFiles = [
+      "build.js",
+      "manifest-firefox.json",
+      "manifest.json.tmp",
+      "*.zip",
+      "README.md",
+      ".git*",
+    ];
+
+    const excludeArgs = excludeFiles.map((file) => `-x "${file}"`).join(" ");
+    execSync(`zip -r ${zipName} . ${excludeArgs}`, { stdio: "inherit" });
+
+    // Restore original manifest if needed
+    if (browser === "firefox") {
+      fs.copyFileSync("manifest.json.tmp", "manifest.json");
+      fs.unlinkSync("manifest.json.tmp");
+    }
+
+    console.log(`\n📦 Created ${zipName} for ${browser}`);
+    return true;
+  } catch (error) {
+    console.log(`\n❌ Failed to create ${browser} zip:`, error.message);
+    return false;
+  }
+}
+
+// Check if we can create zips
 try {
   execSync("which zip", { stdio: "ignore" });
-  console.log("\n📦 To create distribution zip: npm run pack");
+  console.log("\n📦 Available commands:");
+  console.log("   npm run pack        - Create Chrome build");
+  console.log("   npm run pack:firefox - Create Firefox build");
+  console.log("   npm run pack:all     - Create both builds");
 } catch (error) {
   console.log("\n📦 Install zip utility to create distribution packages");
 }

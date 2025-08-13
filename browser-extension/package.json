@@ -4,7 +4,9 @@
   "description": "Browser extension for Knowledge Vault - save and manage knowledge from anywhere on the web",
   "scripts": {
     "build": "node build.js",
-    "pack": "zip -r knowledge-vault-extension.zip . -x 'build.js' 'node_modules/*' '.DS_Store' '*.md' '*-debug.js' 'package.json'",
+    "pack": "cp manifest.json manifest.json.bak && zip -r knowledge-vault-extension-chrome.zip . -x 'build.js' 'manifest-firefox.json' 'manifest.json.bak' 'node_modules/*' '.DS_Store' '*.md' '*-debug.js' 'package.json' && mv manifest.json.bak manifest.json",
+    "pack:firefox": "cp manifest.json manifest.json.bak && cp manifest-firefox.json manifest.json && zip -r knowledge-vault-extension-firefox.zip . -x 'build.js' 'manifest-firefox.json' 'manifest.json.bak' 'node_modules/*' '.DS_Store' '*.md' '*-debug.js' 'package.json' && mv manifest.json.bak manifest.json",
+    "pack:all": "npm run pack && npm run pack:firefox",
     "dev": "echo 'Load the extension folder directly in Chrome for development'"
   },
   "keywords": [

@@ -98,31 +98,100 @@
     // Create popup element
     highlightPopup = document.createElement("div");
     highlightPopup.className = "knowledge-vault-highlight-popup";
-    highlightPopup.innerHTML = `
-      <div class="kv-popup-content">
-        <button class="kv-popup-btn kv-save-btn" title="Save to Knowledge Vault">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-          </svg>
-          Save
-        </button>
-        <button class="kv-popup-btn kv-note-btn" title="Save with note">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14,2 14,8 20,8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-          </svg>
-          Note
-        </button>
-        <button class="kv-popup-btn kv-close-btn" title="Close">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
-        </button>
-      </div>
-    `;
+    
+    // Create popup content container
+    const popupContent = document.createElement("div");
+    popupContent.className = "kv-popup-content";
+    
+    // Create Save button
+    const saveBtn = document.createElement("button");
+    saveBtn.className = "kv-popup-btn kv-save-btn";
+    saveBtn.title = "Save to Knowledge Vault";
+    
+    const saveSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    saveSvg.setAttribute("width", "16");
+    saveSvg.setAttribute("height", "16");
+    saveSvg.setAttribute("viewBox", "0 0 24 24");
+    saveSvg.setAttribute("fill", "none");
+    saveSvg.setAttribute("stroke", "currentColor");
+    saveSvg.setAttribute("stroke-width", "2");
+    
+    const savePath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    savePath.setAttribute("d", "M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z");
+    saveSvg.appendChild(savePath);
+    
+    saveBtn.appendChild(saveSvg);
+    saveBtn.appendChild(document.createTextNode(" Save"));
+    
+    // Create Note button
+    const noteBtn = document.createElement("button");
+    noteBtn.className = "kv-popup-btn kv-note-btn";
+    noteBtn.title = "Save with note";
+    
+    const noteSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    noteSvg.setAttribute("width", "16");
+    noteSvg.setAttribute("height", "16");
+    noteSvg.setAttribute("viewBox", "0 0 24 24");
+    noteSvg.setAttribute("fill", "none");
+    noteSvg.setAttribute("stroke", "currentColor");
+    noteSvg.setAttribute("stroke-width", "2");
+    
+    const notePath1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    notePath1.setAttribute("d", "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z");
+    const notePolyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+    notePolyline.setAttribute("points", "14,2 14,8 20,8");
+    const noteLine1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    noteLine1.setAttribute("x1", "16");
+    noteLine1.setAttribute("y1", "13");
+    noteLine1.setAttribute("x2", "8");
+    noteLine1.setAttribute("y2", "13");
+    const noteLine2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    noteLine2.setAttribute("x1", "16");
+    noteLine2.setAttribute("y1", "17");
+    noteLine2.setAttribute("x2", "8");
+    noteLine2.setAttribute("y2", "17");
+    
+    noteSvg.appendChild(notePath1);
+    noteSvg.appendChild(notePolyline);
+    noteSvg.appendChild(noteLine1);
+    noteSvg.appendChild(noteLine2);
+    
+    noteBtn.appendChild(noteSvg);
+    noteBtn.appendChild(document.createTextNode(" Note"));
+    
+    // Create Close button
+    const closeBtn = document.createElement("button");
+    closeBtn.className = "kv-popup-btn kv-close-btn";
+    closeBtn.title = "Close";
+    
+    const closeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    closeSvg.setAttribute("width", "16");
+    closeSvg.setAttribute("height", "16");
+    closeSvg.setAttribute("viewBox", "0 0 24 24");
+    closeSvg.setAttribute("fill", "none");
+    closeSvg.setAttribute("stroke", "currentColor");
+    closeSvg.setAttribute("stroke-width", "2");
+    
+    const closeLine1 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    closeLine1.setAttribute("x1", "18");
+    closeLine1.setAttribute("y1", "6");
+    closeLine1.setAttribute("x2", "6");
+    closeLine1.setAttribute("y2", "18");
+    const closeLine2 = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    closeLine2.setAttribute("x1", "6");
+    closeLine2.setAttribute("y1", "6");
+    closeLine2.setAttribute("x2", "18");
+    closeLine2.setAttribute("y2", "18");
+    
+    closeSvg.appendChild(closeLine1);
+    closeSvg.appendChild(closeLine2);
+    closeBtn.appendChild(closeSvg);
+    
+    // Assemble the popup
+    popupContent.appendChild(saveBtn);
+    popupContent.appendChild(noteBtn);
+    popupContent.appendChild(closeBtn);
+    highlightPopup.appendChild(popupContent);
 
     // Position popup
     const selection = window.getSelection();
