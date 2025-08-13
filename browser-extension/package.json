@@ -1,0 +1,20 @@
+{
+  "name": "knowledge-vault-extension",
+  "version": "1.0.0",
+  "description": "Browser extension for Knowledge Vault - save and manage knowledge from anywhere on the web",
+  "scripts": {
+    "build": "node build.js",
+    "pack": "zip -r knowledge-vault-extension.zip . -x 'build.js' 'node_modules/*' '.DS_Store' '*.md' '*-debug.js' 'package.json'",
+    "dev": "echo 'Load the extension folder directly in Chrome for development'"
+  },
+  "keywords": [
+    "knowledge-management",
+    "browser-extension",
+    "bookmarks",
+    "notes",
+    "productivity"
+  ],
+  "author": "Mridul Tailor",
+  "license": "MIT",
+  "devDependencies": {}
+}

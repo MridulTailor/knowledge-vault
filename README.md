@@ -65,6 +65,48 @@ A modern, full-featured personal knowledge management system built with Next.js,
 6. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
+## 🌐 Browser Extension
+
+Knowledge Vault includes a powerful browser extension that lets you save content from anywhere on the web directly to your knowledge vault.
+
+### Extension Features
+
+- 🔖 **Save Web Pages**: Quickly save entire pages as bookmarks
+- ✂️ **Save Text Selections**: Highlight and save specific text from any webpage
+- 📝 **Highlight with Notes**: Add personal notes to highlighted content
+- 🔍 **Quick Search**: Search your knowledge vault from any webpage
+- 📋 **Context Menu Integration**: Right-click to save content
+- ⌨️ **Keyboard Shortcuts**: Fast access with Ctrl+Shift+S and Ctrl+Shift+N
+- 📱 **Recent Entries**: View your latest knowledge entries
+
+### Extension Installation
+
+1. **Navigate to the extension folder**
+
+   ```bash
+   cd browser-extension
+   ```
+
+2. **Build the extension**
+
+   ```bash
+   node build.js
+   ```
+
+3. **Load in Chrome**
+
+   - Open Chrome and go to `chrome://extensions/`
+   - Enable "Developer mode" (toggle in top right)
+   - Click "Load unpacked"
+   - Select the `browser-extension` folder
+
+4. **Configure the extension**
+   - Click the extension icon in your browser toolbar
+   - Click "Settings" to configure your server URL and authentication token
+   - Test the connection to ensure it's working
+
+For detailed setup instructions, see `browser-extension/README.md`.
+
 ## 📖 Usage
 
 ### Creating Your First Entry

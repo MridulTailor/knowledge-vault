@@ -1,0 +1,83 @@
+/* Content script styles */
+.knowledge-vault-highlight-popup {
+  position: absolute;
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  z-index: 10000;
+}
+
+.kv-popup-content {
+  display: flex;
+  gap: 4px;
+}
+
+.kv-popup-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.kv-popup-btn:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.kv-save-btn:hover {
+  background: #dcfdf7;
+  color: #047857;
+}
+
+.kv-note-btn:hover {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.kv-close-btn:hover {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.kv-popup-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Animations */
+@keyframes kvSlideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes kvSlideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.knowledge-vault-notification {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
