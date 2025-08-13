@@ -34,13 +34,19 @@ export function MainLayout({
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
+  if (!showSidebar) {
+    // For pages that don't need sidebar (like graph page)
+    return <div className="min-h-screen bg-background">{children}</div>;
+  }
+
+  // For pages that need sidebar (like dashboard)
   return (
     <div className="flex h-screen bg-background">
-      {showSidebar && sidebarProps && <Sidebar {...sidebarProps} />}
+      {sidebarProps && <Sidebar {...sidebarProps} />}
       <main
         className={cn(
-          "flex-1 overflow-hidden sidebar-transition",
-          showSidebar && !isMobile ? "ml-64" : "ml-0"
+          "flex-1 overflow-hidden",
+          sidebarProps && !isMobile ? "ml-64" : "ml-0"
         )}
       >
         {children}

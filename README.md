@@ -15,6 +15,7 @@ A modern, full-featured personal knowledge management system built with Next.js,
 
 ### Advanced Features
 
+- **Knowledge Graph**: Interactive visualization of entries and their relationships with D3.js
 - **GraphQL API**: Efficient data fetching and real-time updates
 - **Authentication**: Secure user accounts with JWT tokens
 - **Export/Import**: Export your data as JSON or Markdown
@@ -116,6 +117,35 @@ A modern, full-featured personal knowledge management system built with Next.js,
 - `npm run lint` - Run ESLint
 - `npm run db:push` - Push schema changes to database
 - `npm run db:generate` - Generate Prisma client
+
+## 📊 Knowledge Graph
+
+The Knowledge Graph is an interactive visualization feature that displays your entries as nodes and their relationships as connecting links. It provides a visual way to explore the connections in your knowledge base.
+
+### Features
+
+- **Interactive Visualization**: Zoomable and pannable graph using D3.js force simulation
+- **Node Types**: Different colors and sizes for articles, code snippets, and bookmarks
+- **Relationship Types**: Various edge styles representing different relationship types
+- **Search & Filter**: Real-time search highlighting matching nodes
+- **Hover Effects**: Interactive tooltips showing entry details and relationship information
+- **Node Highlighting**: When hovering over nodes or links, connected elements are emphasized
+- **Fullscreen Mode**: Expand the graph for detailed exploration
+- **Drag & Drop**: Reorganize the layout by dragging nodes
+
+### Usage
+
+1. Navigate to the Knowledge Graph from the dashboard
+2. Use the search bar to find specific entries
+3. Hover over nodes to see entry previews
+4. Hover over edges to see relationship details
+5. Click on nodes for detailed information
+6. Use zoom controls for better navigation
+7. Toggle fullscreen mode for immersive viewing
+
+### Sample Data
+
+If you don't have existing entries, use the sample data loader to generate interconnected examples demonstrating various relationship types and content categories.
 
 ## 🎨 Customization
 

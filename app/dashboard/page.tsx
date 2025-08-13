@@ -36,6 +36,7 @@ import {
   Code,
   Bookmark,
   Users,
+  Network,
 } from "lucide-react";
 
 const ENTRIES_QUERY = `
@@ -316,6 +317,14 @@ export default function Dashboard() {
               </Select>
             </div>
             <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => router.push("/graph")}
+                className="border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200"
+              >
+                <Network className="h-4 w-4 mr-2" />
+                Knowledge Graph
+              </Button>
               <Button
                 variant="outline"
                 onClick={() => setShowExportImport(true)}
