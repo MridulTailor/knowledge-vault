@@ -4,7 +4,6 @@ import { Inter, JetBrains_Mono } from "next/font/google"; // eslint-disable-line
 import { AuthProvider } from "@/lib/hooks/use-auth";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { Theme } from "@radix-ui/themes";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -59,10 +58,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Theme panelBackground="solid" accentColor="blue" grayColor="slate" radius="medium">
-            <AuthProvider>{children}</AuthProvider>
-            <Toaster />
-          </Theme>
+          <AuthProvider>{children}</AuthProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

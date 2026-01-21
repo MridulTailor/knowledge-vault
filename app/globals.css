@@ -1,4 +1,3 @@
-@import '@radix-ui/themes/styles.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -125,18 +124,18 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    --sidebar-background: 220 17% 7%;
+    --sidebar-background: 240 5.9% 10%;
     /* Match bg */
-    --sidebar-foreground: 222 13% 65%;
+    --sidebar-foreground: 240 4.8% 95.9%;
     /* Muted */
-    --sidebar-primary: 219 100% 65%;
+    --sidebar-primary: 224.3 76.3% 48%;
     /* Accent */
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 24% 11%;
+    --sidebar-accent: 240 3.7% 15.9%;
     /* Surface */
-    --sidebar-accent-foreground: 225 20% 92%;
-    --sidebar-border: 227 25% 18%;
-    --sidebar-ring: 219 100% 65%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
