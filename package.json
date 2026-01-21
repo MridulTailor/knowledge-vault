@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@apollo/server": "latest",
-    "@as-integrations/next": "latest",
+    "@as-integrations/next": "^4.1.0",
     "@babel/runtime": "latest",
     "@codemirror/lang-javascript": "latest",
     "@codemirror/lang-python": "latest",
