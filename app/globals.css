@@ -1,163 +1,151 @@
+@import '@radix-ui/themes/styles.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Custom animations and transitions */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes glow {
-  0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.2); }
-  50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
-}
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
-  
-  .animate-fade-in {
-    animation: fadeIn 0.3s ease-out;
-  }
-  
-  .animate-slide-in {
-    animation: slideIn 0.2s ease-out;
-  }
-  
-  .animate-glow {
-    animation: glow 2s ease-in-out infinite;
-  }
-  
-  .glass-effect {
-    background: rgba(15, 15, 15, 0.8);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-  
-  .gradient-border {
-    position: relative;
-    background: linear-gradient(45deg, rgba(59, 130, 246, 0.05), rgba(75, 85, 99, 0.1));
-    border: 1px solid transparent;
-  }
-  
-  .gradient-border::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    padding: 1px;
-    background: linear-gradient(45deg, #3b82f6, #6b7280);
-    border-radius: inherit;
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    -webkit-mask-composite: xor;
-  }
-
-  /* Responsive adjustments */
-  @media (max-width: 768px) {
-    .glass-effect {
-      backdrop-filter: blur(8px);
-    }
-  }
 }
 
 @layer base {
   :root {
-    /* Supermemory.ai inspired color palette - Dark theme as default */
-    --background: 220 13% 6%;
-    --foreground: 210 40% 95%;
-    --card: 220 13% 8%;
-    --card-foreground: 210 40% 90%;
-    --popover: 220 13% 8%;
-    --popover-foreground: 210 40% 95%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 220 13% 6%;
-    --secondary: 220 13% 12%;
-    --secondary-foreground: 210 40% 85%;
-    --muted: 220 13% 10%;
-    --muted-foreground: 217 10% 65%;
-    --accent: 220 15% 18%;
-    --accent-foreground: 210 40% 90%;
-    --destructive: 0 84% 60%;
+    /* Light Mode - Neutral High Contrast */
+    --background: 0 0% 100%;
+    /* #FFFFFF */
+    --foreground: 222 13% 15%;
+    /* #212429 - Slightly softer than pure black */
+
+    --card: 220 14% 96%;
+    /* #F4F5F8 */
+    --card-foreground: 222 13% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 13% 15%;
+
+    --primary: 222 13% 9%;
+    /* #151922 */
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 220 14% 96%;
+    /* #F4F5F8 - Surface equivalent */
+    --secondary-foreground: 222 13% 15%;
+
+    --muted: 220 13% 91%;
+    /* #E6E8EB - Border equivalent used as muted bg sometimes */
+    --muted-foreground: 224 10% 44%;
+    /* #646A7B */
+
+    --accent: 221 83% 53%;
+    /* #2563EB - Blue 600 */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 220 13% 15%;
-    --input: 220 13% 12%;
-    --ring: 217 91% 60%;
-    --chart-1: 217 91% 60%;
-    --chart-2: 262 83% 58%;
+
+    --border: 220 13% 91%;
+    /* #E6E8EB */
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
+    /* Match Accent */
+
+    --radius: 0.5rem;
+
+    /* Chart tokens adapted for light mode */
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.75rem;
-    
-    /* Custom colors for supermemory aesthetic */
-    --electric-blue: 217 91% 60%;
-    --purple-accent: 262 83% 58%;
-    --deep-gray: 220 13% 10%;
-    --lighter-gray: 220 13% 15%;
-    --text-primary: 210 40% 95%;
-    --text-secondary: 217 10% 65%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
+  .dark {
+    /* Dark Mode - Strict Neutral System per spec */
+    /* Check HSL logic: #0F1115 -> 220 17% 7% */
+    --background: 220 17% 7%;
+
+    /* #E6E8EE -> 225 20% 92% */
+    --foreground: 225 20% 92%;
+
+    /* #151922 -> 222 24% 11% */
+    --card: 222 24% 11%;
+    --card-foreground: 225 20% 92%;
+
+    --popover: 220 17% 7%;
+    --popover-foreground: 225 20% 92%;
+
+    /* Primary is typically the accent or the foreground in dark mode depending on usage. 
+       Tailwind 'bg-primary' usually means "Main Brand Color" OR "Solid Foreground".
+       Given the spec says "Accent used for active states", I will map Primary to Foreground (Surface) 
+       OR map it to Accent. 
+       Commonly, Shadcn uses Primary as the dark text color. 
+       Let's stick to spec: default Surface. */
+    --primary: 225 20% 92%;
+    /* Foreground color */
+    --primary-foreground: 220 17% 7%;
+    /* Background color */
+
+    /* #151922 for Surface */
+    --secondary: 222 24% 11%;
+    --secondary-foreground: 225 20% 92%;
+
+    /* #23283A for Border/Muted areas sometimes */
+    --muted: 227 25% 18%;
+
+    /* #9AA1B2 -> 222 13% 65% for Mute Text */
+    --muted-foreground: 222 13% 65%;
+
+    /* Accent #4F8CFF -> 219 100% 65% */
+    --accent: 219 100% 65%;
+    --accent-foreground: 220 17% 7%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* #23283A -> 227 25% 18% */
+    --border: 227 25% 18%;
+    --input: 227 25% 18%;
+
+    --ring: 219 100% 65%;
+
+    /* Chart tokens */
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+
+    --sidebar-background: 220 17% 7%;
+    /* Match bg */
+    --sidebar-foreground: 222 13% 65%;
+    /* Muted */
+    --sidebar-primary: 219 100% 65%;
+    /* Accent */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 222 24% 11%;
+    /* Surface */
+    --sidebar-accent-foreground: 225 20% 92%;
+    --sidebar-border: 227 25% 18%;
+    --sidebar-ring: 219 100% 65%;
+  }
+}
+
+@layer base {
   * {
-    @apply border-border transition-colors duration-200;
+    @apply border-border;
   }
-  
+
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-    background: radial-gradient(ellipse at top, rgba(99, 102, 241, 0.03) 0%, transparent 50%),
-                radial-gradient(ellipse at bottom, rgba(59, 130, 246, 0.02) 0%, transparent 50%),
-                hsl(var(--background));
-  }
-  
-  /* Scrollbar styling */
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background: hsl(var(--background));
-  }
-  
-  ::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
-    border-radius: 4px;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary));
-  }
-  
-  /* Typography improvements */
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight;
-  }
-  
-  h1 {
-    @apply text-3xl lg:text-4xl;
-  }
-  
-  h2 {
-    @apply text-2xl lg:text-3xl;
-  }
-  
-  h3 {
-    @apply text-xl lg:text-2xl;
-  }
-  
-  /* Enhanced focus states */
-  button:focus-visible,
-  input:focus-visible,
-  textarea:focus-visible,
-  select:focus-visible {
-    @apply ring-2 ring-primary ring-offset-2 ring-offset-background outline-none;
+    @apply bg-background text-foreground;
   }
 }

@@ -25,50 +25,56 @@ export function WelcomeBanner({
   };
 
   return (
-    <Card className="glass-effect border-border/50 p-6 mb-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
-            <Brain className="h-6 w-6 text-white" />
+    <Card className="p-8 mb-8">
+      <div className="flex items-center justify-between flex-wrap gap-6">
+        <div className="flex items-center space-x-5">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
+            <Brain className="h-8 w-8 text-primary" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-foreground">
+            <h2 className="text-2xl font-bold tracking-tight mb-1">
               {getGreeting()}
-              {userName ? `, ${userName}` : ""}
+              {userName && <span>, {userName}</span>}
             </h2>
-            <p className="text-muted-foreground">
-              Your memories are always in sync
+            <p className="text-muted-foreground text-sm">
+              Your knowledge, organized and connected
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center gap-8">
           {/* Stats */}
-          <div className="hidden md:flex items-center space-x-4">
-            <div className="text-center">
-              <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+          <div className="hidden md:flex items-center gap-6">
+            <div className="text-center px-4 py-2">
+              <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground mb-1">
                 <Sparkles className="h-4 w-4" />
-                <span>Total</span>
+                <span className="font-medium">Total</span>
               </div>
-              <p className="text-2xl font-bold text-foreground">
+              <p className="text-3xl font-bold">
                 {totalMemories}
               </p>
             </div>
-            <div className="text-center">
-              <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+            
+            <div className="h-12 w-px bg-border" />
+            
+            <div className="text-center px-4 py-2">
+              <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground mb-1">
                 <TrendingUp className="h-4 w-4" />
-                <span>Recent</span>
+                <span className="font-medium">Recent</span>
               </div>
-              <p className="text-2xl font-bold text-primary">
+              <p className="text-3xl font-bold">
                 {recentActivity}
               </p>
             </div>
-            <div className="text-center">
-              <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+            
+            <div className="h-12 w-px bg-border" />
+            
+            <div className="text-center px-4 py-2">
+              <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground mb-1">
                 <Clock className="h-4 w-4" />
-                <span>Today</span>
+                <span className="font-medium">Today</span>
               </div>
-              <p className="text-2xl font-bold text-accent">
+              <p className="text-3xl font-bold">
                 {new Date().toLocaleDateString("en-US", { day: "numeric" })}
               </p>
             </div>
@@ -76,10 +82,11 @@ export function WelcomeBanner({
 
           <Button
             onClick={onQuickAdd}
-            className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-200"
+            size="lg"
+            className="gap-2"
           >
-            <Sparkles className="h-4 w-4 mr-2" />
-            Quick Add
+            <Sparkles className="h-5 w-5" />
+            <span className="font-semibold">Quick Add</span>
           </Button>
         </div>
       </div>

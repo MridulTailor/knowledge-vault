@@ -12,7 +12,7 @@ const server = new ApolloServer({
 
 const handler = startServerAndCreateNextHandler<NextRequest>(server, {
   context: async (req) => {
-    const authHeader = req.headers.get("authorization")
+    const authHeader = req.headers.get("authorization") || undefined
     const token = extractToken(authHeader)
     const user = token ? verifyToken(token) : null
 

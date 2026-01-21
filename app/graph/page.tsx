@@ -76,7 +76,7 @@ export default function GraphPage() {
 
   if (loading || entriesLoading) {
     return (
-      <MainLayout>
+      <MainLayout showSidebar={false}>
         <div className="container mx-auto px-4 py-8 space-y-6">
           {/* Header Skeleton */}
           <div className="flex items-center justify-between">
@@ -98,7 +98,7 @@ export default function GraphPage() {
 
   if (error) {
     return (
-      <MainLayout>
+      <MainLayout showSidebar={false}>
         <div className="flex items-center justify-center h-96">
           <Card className="max-w-md">
             <CardHeader>

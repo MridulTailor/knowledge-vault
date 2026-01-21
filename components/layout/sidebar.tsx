@@ -1,54 +1,74 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
   Home,
   Plus,
-  FileText,
   Search,
-  Settings,
   LogOut,
   Brain,
-  Menu,
-  X,
-  Code,
-  Bookmark,
-  Layers,
-  Archive,
+  ChevronLeft,
+  ChevronRight,
+  Folder,
+  Network,
   Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ModeToggle } from "@/components/mode-toggle";
 
 interface SidebarProps {
-  activeView: string;
-  onViewChange: (view: string) => void;
-  onShowSearch: () => void;
-  onShowForm: () => void;
-  onShowExportImport: () => void;
+  onShowSearch?: () => void;
+  onShowForm?: () => void;
+  onShowExportImport?: () => void;
+  isMobileOpen?: boolean;
+  onMobileToggle?: () => void;
+  isCollapsed?: boolean;
+  onCollapsedChange?: (collapsed: boolean) => void;
 }
 
 export function Sidebar({
-  activeView,
-  onViewChange,
   onShowSearch,
   onShowForm,
   onShowExportImport,
+  isMobileOpen = false,
+  onMobileToggle,
+  isCollapsed: externalIsCollapsed,
+  onCollapsedChange,
 }: SidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [internalIsCollapsed, setInternalIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { user, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Use external collapsed state if provided, otherwise use internal
+  const isCollapsed = externalIsCollapsed ?? internalIsCollapsed;
+
+  const handleCollapsedToggle = () => {
+    const newCollapsed = !isCollapsed;
+    if (onCollapsedChange) {
+      onCollapsedChange(newCollapsed);
+    } else {
+      setInternalIsCollapsed(newCollapsed);
+    }
+  };
 
   useEffect(() => {
     const checkScreenSize = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
       if (mobile) {
-        setIsCollapsed(true);
+        // Reset collapsed state on mobile
+        if (onCollapsedChange) {
+          onCollapsedChange(false);
+        } else {
+          setInternalIsCollapsed(false);
+        }
       }
     };
 
@@ -56,7 +76,7 @@ export function Sidebar({
     window.addEventListener("resize", checkScreenSize);
 
     return () => window.removeEventListener("resize", checkScreenSize);
-  }, []);
+  }, [onCollapsedChange]);
 
   const handleLogout = () => {
     logout();
@@ -66,132 +86,149 @@ export function Sidebar({
 
   const menuItems = [
     {
-      id: "home",
-      label: "Home",
+      id: "dashboard",
+      label: "Dashboard",
       icon: Home,
-      action: () => onViewChange("home"),
+      path: "/dashboard",
     },
     {
-      id: "memories",
-      label: "Memories",
-      icon: FileText,
-      action: () => onViewChange("memories"),
+      id: "graph",
+      label: "Knowledge Graph",
+      icon: Network,
+      path: "/graph",
     },
     {
-      id: "code",
-      label: "Code",
-      icon: Code,
-      action: () => onViewChange("code"),
-    },
-    {
-      id: "bookmarks",
-      label: "Bookmarks",
-      icon: Bookmark,
-      action: () => onViewChange("bookmarks"),
-    },
-    {
-      id: "spaces",
-      label: "Spaces",
-      icon: Layers,
-      action: () => onViewChange("spaces"),
+      id: "collections",
+      label: "Collections",
+      icon: Folder,
+      path: "/dashboard?view=collections",
     },
   ];
 
   const quickActions = [
     { label: "Add Memory", icon: Plus, action: onShowForm },
-    { label: "Search", icon: Search, action: onShowSearch },
-    { label: "Export/Import", icon: Download, action: onShowExportImport },
-  ];
+    onShowSearch && { label: "Search", icon: Search, action: onShowSearch },
+    onShowExportImport && { label: "Export/Import", icon: Download, action: onShowExportImport },
+  ].filter(Boolean);
 
   return (
-    <div
-      className={cn(
-        "fixed left-0 top-0 z-50 h-screen bg-card/95 backdrop-blur-xl border-r border-border/50 transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64",
-        isMobile && isCollapsed && "-translate-x-full"
-      )}
-    >
+    <>
       {/* Mobile Overlay */}
-      {isMobile && !isCollapsed && (
+      {isMobile && isMobileOpen && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40"
-          onClick={() => setIsCollapsed(true)}
+          className="fixed inset-0 bg-black/50 z-40 transition-opacity"
+          onClick={onMobileToggle}
         />
       )}
+      
+      <div
+        className={cn(
+          "fixed left-0 top-0 z-50 h-screen bg-card border-r border-border transition-all duration-300",
+          isCollapsed && !isMobile ? "w-20" : "w-64",
+          isMobile && !isMobileOpen && "-translate-x-full"
+        )}
+      >
       {/* Header */}
-      <div className="p-6 border-b border-border/30">
+      <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between">
-          {!isCollapsed && (
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
-                <Brain className="h-4 w-4 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold text-foreground">
-                  Knowledge Vault
-                </h1>
-                <p className="text-xs text-muted-foreground">
-                  Your digital memory
-                </p>
-              </div>
+          <div className={cn("flex items-center space-x-3", isCollapsed && !isMobile ? "justify-center w-full" : "")}>
+            <div className="flex-shrink-0 w-8 h-8 rounded-md bg-primary text-primary-foreground flex items-center justify-center">
+              <Brain className="h-5 w-5" />
             </div>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="ml-auto hover:bg-muted/50"
-          >
-            {isCollapsed ? (
-              <Menu className="h-4 w-4" />
-            ) : (
-              <X className="h-4 w-4" />
+            {!isCollapsed && (
+              <h1 className="text-lg font-bold truncate">
+                Knowledge Vault
+              </h1>
             )}
-          </Button>
+          </div>
+          
+          {!isMobile && !isCollapsed && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCollapsedToggle}
+              className="h-8 w-8 p-0"
+              title="Collapse sidebar"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          )}
         </div>
+        {isCollapsed && !isMobile && (
+           <Button
+             variant="ghost"
+             size="sm"
+             onClick={handleCollapsedToggle}
+             className="w-full mt-2 h-8"
+             title="Expand sidebar"
+           >
+             <ChevronRight className="h-4 w-4" />
+           </Button>
+        )}
       </div>
 
       {/* Navigation */}
-      <nav className="p-4 space-y-2">
-        {menuItems.map((item) => (
-          <Button
-            key={item.id}
-            variant={activeView === item.id ? "default" : "ghost"}
-            className={cn(
-              "w-full justify-start text-sm font-medium transition-all duration-200",
-              isCollapsed ? "px-3" : "px-4",
-              activeView === item.id
-                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
-            )}
-            onClick={item.action}
-          >
-            <item.icon className={cn("h-4 w-4", !isCollapsed && "mr-3")} />
-            {!isCollapsed && item.label}
-          </Button>
-        ))}
+      <nav className="p-2 space-y-1 mt-4">
+        {menuItems.map((item) => {
+          let isActive = false;
+          const viewParam = searchParams?.get('view');
+          
+          if (item.id === 'dashboard') {
+            isActive = pathname === '/dashboard' && (!viewParam || viewParam === 'home');
+          } else if (item.id === 'collections') {
+            isActive = pathname === '/dashboard' && viewParam === 'collections';
+          } else if (item.id === 'graph') {
+            isActive = pathname === '/graph';
+          } else {
+            isActive = pathname === item.path;
+          }
+          
+          return (
+            <Button
+              key={item.id}
+              variant="ghost"
+              className={cn(
+                "w-full justify-start",
+                isCollapsed ? "px-2 justify-center" : "px-3",
+                isActive && "bg-accent/10 text-accent font-medium hover:bg-accent/15 hover:text-accent"
+              )}
+              onClick={() => {
+                router.push(item.path);
+                if (isMobile && onMobileToggle) onMobileToggle();
+              }}
+              title={isCollapsed ? item.label : undefined}
+            >
+              <item.icon className={cn("h-4 w-4", !isCollapsed && "mr-3")} />
+              {!isCollapsed && <span>{item.label}</span>}
+            </Button>
+          );
+        })}
       </nav>
 
       {/* Quick Actions */}
-      <div className="p-4 border-t border-border/30">
+      <div className="p-4 mt-auto">
         {!isCollapsed && (
-          <p className="text-xs font-medium text-muted-foreground mb-3 uppercase tracking-wide">
+          <p className="text-xs font-medium text-muted-foreground mb-2 px-2">
             Quick Actions
           </p>
         )}
         <div className="space-y-1">
-          {quickActions.map((action, index) => (
+          {quickActions.map((action: any, index) => (
             <Button
               key={index}
-              variant="ghost"
+              variant="outline"
               size="sm"
               className={cn(
-                "w-full justify-start text-sm transition-all duration-200 hover:bg-primary/10 hover:text-primary",
-                isCollapsed ? "px-3" : "px-4"
+                "w-full justify-start",
+                isCollapsed ? "px-2 justify-center" : "px-3"
               )}
-              onClick={action.action}
+              onClick={() => {
+                action.action();
+                if (isMobile && onMobileToggle) onMobileToggle();
+              }}
+              title={isCollapsed ? action.label : undefined}
             >
-              <action.icon className={cn("h-4 w-4", !isCollapsed && "mr-3")} />
+              <action.icon className={cn("h-4 w-4", !isCollapsed && "mr-2")} />
               {!isCollapsed && action.label}
             </Button>
           ))}
@@ -199,16 +236,11 @@ export function Sidebar({
       </div>
 
       {/* User Section */}
-      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border/30">
-        <div
-          className={cn(
-            "flex items-center space-x-3",
-            isCollapsed && "justify-center"
-          )}
-        >
+      <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-card">
+        <div className={cn("flex items-center gap-3", isCollapsed && "justify-center")}>
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
+              <p className="text-sm font-medium truncate">
                 {user?.name || user?.email?.split("@")[0] || "User"}
               </p>
               <p className="text-xs text-muted-foreground truncate">
@@ -216,16 +248,19 @@ export function Sidebar({
               </p>
             </div>
           )}
+          <ModeToggle />
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={handleLogout}
-            className="hover:bg-destructive/10 hover:text-destructive"
+            className="h-8 w-8 text-muted-foreground hover:text-foreground"
+            title="Logout"
           >
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

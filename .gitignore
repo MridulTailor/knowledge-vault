@@ -29,3 +29,6 @@ next-env.d.ts
 # database (legacy SQLite files - no longer used)
 *.db
 *.db-journal
+
+# macOS
+.DS_Store

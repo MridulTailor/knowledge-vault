@@ -1,14 +1,21 @@
 import type React from "react";
 import "./globals.css";
-import { Space_Grotesk } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google"; // eslint-disable-line @typescript-eslint/no-unused-vars
 import { AuthProvider } from "@/lib/hooks/use-auth";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { Theme } from "@radix-ui/themes";
 
-const spaceGrotesk = Space_Grotesk({
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
-  fallback: ["Arial", "sans-serif"],
+  variable: "--font-inter",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-jetbrains-mono",
 });
 
 export const metadata = {
@@ -45,15 +52,17 @@ export default function RootLayout({
         <link rel="icon" type="image/svg+xml" href="/icon.svg" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={spaceGrotesk.className}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>{children}</AuthProvider>
-          <Toaster />
+          <Theme panelBackground="solid" accentColor="blue" grayColor="slate" radius="medium">
+            <AuthProvider>{children}</AuthProvider>
+            <Toaster />
+          </Theme>
         </ThemeProvider>
       </body>
     </html>

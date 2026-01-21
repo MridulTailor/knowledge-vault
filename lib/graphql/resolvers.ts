@@ -43,6 +43,17 @@ const serializeUser = (user: any) => {
     ...user,
     createdAt: serializeDate(user.createdAt),
     entries: user.entries?.map(serializeEntry) || [],
+    collections: user.collections?.map(serializeCollection) || [],
+  }
+}
+
+const serializeCollection = (collection: any) => {
+  if (!collection) return collection
+  return {
+    ...collection,
+    createdAt: serializeDate(collection.createdAt),
+    updatedAt: serializeDate(collection.updatedAt),
+    entries: collection.entries?.map((ce: any) => serializeEntry(ce.entry)) || [],
   }
 }
 
@@ -52,6 +63,10 @@ export const resolvers = {
       const user = requireAuth(context)
       const userData = await prisma.user.findUnique({
         where: { id: user.userId },
+        include: {
+          entries: true, // simplified fetch, field resolvers handle details if needed
+          collections: true,
+        }
       })
       return userData ? serializeUser(userData) : null
     },
@@ -144,6 +159,33 @@ export const resolvers = {
         },
       })
     },
+
+    collections: async (_: any, __: any, context: Context) => {
+      const user = requireAuth(context)
+      const collections = await prisma.collection.findMany({
+        where: { userId: user.userId },
+        orderBy: { updatedAt: "desc" },
+        include: {
+          entries: {
+            include: { entry: true },
+          },
+        },
+      })
+      return collections.map(serializeCollection)
+    },
+
+    collection: async (_: any, args: { id: string }, context: Context) => {
+      const user = requireAuth(context)
+      const collection = await prisma.collection.findFirst({
+        where: { id: args.id, userId: user.userId },
+        include: {
+          entries: {
+            include: { entry: true },
+          },
+        },
+      })
+      return collection ? serializeCollection(collection) : null
+    },
   },
 
   Mutation: {
@@ -192,15 +234,15 @@ export const resolvers = {
           userId: user.userId,
           tags: tagNames
             ? {
-                create: tagNames.map((name: string) => ({
-                  tag: {
-                    connectOrCreate: {
-                      where: { name },
-                      create: { name },
-                    },
+              create: tagNames.map((name: string) => ({
+                tag: {
+                  connectOrCreate: {
+                    where: { name },
+                    create: { name },
                   },
-                })),
-              }
+                },
+              })),
+            }
             : undefined,
         },
         include: {
@@ -238,15 +280,15 @@ export const resolvers = {
           ...updateData,
           tags: tagNames
             ? {
-                create: tagNames.map((name: string) => ({
-                  tag: {
-                    connectOrCreate: {
-                      where: { name },
-                      create: { name },
-                    },
+              create: tagNames.map((name: string) => ({
+                tag: {
+                  connectOrCreate: {
+                    where: { name },
+                    create: { name },
                   },
-                })),
-              }
+                },
+              })),
+            }
             : undefined,
         },
         include: {
@@ -319,6 +361,134 @@ export const resolvers = {
         },
       })
     },
+
+    createCollection: async (_: any, args: { input: any }, context: Context) => {
+      const user = requireAuth(context)
+      const { entryIds, ...data } = args.input
+
+      const collection = await prisma.collection.create({
+        data: {
+          ...data,
+          userId: user.userId,
+          entries: entryIds
+            ? {
+              create: entryIds.map((id: string) => ({
+                entry: { connect: { id } },
+              })),
+            }
+            : undefined,
+        },
+        include: {
+          entries: { include: { entry: true } },
+        },
+      })
+
+      return serializeCollection(collection)
+    },
+
+    updateCollection: async (_: any, args: { id: string; input: any }, context: Context) => {
+      const user = requireAuth(context)
+      const { entryIds, ...data } = args.input
+
+      const collection = await prisma.collection.findFirst({
+        where: { id: args.id, userId: user.userId },
+      })
+
+      if (!collection) throw new GraphQLError("Collection not found")
+
+      if (entryIds !== undefined) {
+        await prisma.collectionEntry.deleteMany({
+          where: { collectionId: args.id },
+        })
+      }
+
+      const updatedCollection = await prisma.collection.update({
+        where: { id: args.id },
+        data: {
+          ...data,
+          entries: entryIds
+            ? {
+              create: entryIds.map((id: string) => ({
+                entry: { connect: { id } },
+              })),
+            }
+            : undefined,
+        },
+        include: {
+          entries: { include: { entry: true } },
+        },
+      })
+
+      return serializeCollection(updatedCollection)
+    },
+
+    deleteCollection: async (_: any, args: { id: string }, context: Context) => {
+      const user = requireAuth(context)
+      const collection = await prisma.collection.findFirst({
+        where: { id: args.id, userId: user.userId },
+      })
+
+      if (!collection) throw new GraphQLError("Collection not found")
+
+      await prisma.collection.delete({ where: { id: args.id } })
+      return true
+    },
+
+    addEntryToCollection: async (_: any, args: { collectionId: string; entryId: string }, context: Context) => {
+      const user = requireAuth(context)
+      const collection = await prisma.collection.findFirst({
+        where: { id: args.collectionId, userId: user.userId },
+        include: { entries: { include: { entry: true } } },
+      })
+
+      if (!collection) throw new GraphQLError("Collection not found")
+
+      const updatedCollection = await prisma.collection.update({
+        where: { id: args.collectionId },
+        data: {
+          entries: {
+            upsert: {
+              where: {
+                collectionId_entryId: {
+                  collectionId: args.collectionId,
+                  entryId: args.entryId,
+                },
+              },
+              create: { entry: { connect: { id: args.entryId } } },
+              update: {},
+            },
+          },
+        },
+        include: { entries: { include: { entry: true } } },
+      })
+
+      return serializeCollection(updatedCollection)
+    },
+
+    removeEntryFromCollection: async (_: any, args: { collectionId: string; entryId: string }, context: Context) => {
+      const user = requireAuth(context)
+      const collection = await prisma.collection.findFirst({
+        where: { id: args.collectionId, userId: user.userId },
+      })
+
+      if (!collection) throw new GraphQLError("Collection not found")
+
+      await prisma.collectionEntry.delete({
+        where: {
+          collectionId_entryId: {
+            collectionId: args.collectionId,
+            entryId: args.entryId,
+          },
+        },
+      })
+
+      const updatedCollection = await prisma.collection.findUnique({
+        where: { id: args.collectionId },
+        include: { entries: { include: { entry: true } } },
+      })
+
+      return serializeCollection(updatedCollection)
+    },
   },
 
   // Field resolvers
@@ -347,6 +517,10 @@ export const resolvers = {
 
     toEntry: (parent: any) => prisma.entry.findUnique({ where: { id: parent.toEntryId } }),
 
+    user: (parent: any) => prisma.user.findUnique({ where: { id: parent.userId } }),
+  },
+
+  Collection: {
     user: (parent: any) => prisma.user.findUnique({ where: { id: parent.userId } }),
   },
 }

@@ -341,12 +341,12 @@ class KnowledgeVaultPopup {
   disableSelectionButton(reason = null) {
     const saveSelectionBtn = document.getElementById("save-selection");
     saveSelectionBtn.disabled = true;
-    
+
     // Clear existing content
     while (saveSelectionBtn.firstChild) {
       saveSelectionBtn.removeChild(saveSelectionBtn.firstChild);
     }
-    
+
     // Create SVG element
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("width", "16");
@@ -355,21 +355,32 @@ class KnowledgeVaultPopup {
     svg.setAttribute("fill", "none");
     svg.setAttribute("stroke", "currentColor");
     svg.setAttribute("stroke-width", "2");
-    
-    const path1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+    const path1 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "path"
+    );
     path1.setAttribute("d", "M3 6l3 3-3 3");
-    const path2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const path2 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "path"
+    );
     path2.setAttribute("d", "M21 6l-3 3 3 3");
-    const path3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const path3 = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "path"
+    );
     path3.setAttribute("d", "M8 12h8");
-    
+
     svg.appendChild(path1);
     svg.appendChild(path2);
     svg.appendChild(path3);
-    
+
     // Add text
-    const text = document.createTextNode(` ${reason ? reason : "Save Selection"}`);
-    
+    const text = document.createTextNode(
+      ` ${reason ? reason : "Save Selection"}`
+    );
+
     saveSelectionBtn.appendChild(svg);
     saveSelectionBtn.appendChild(text);
   }
@@ -519,7 +530,7 @@ class KnowledgeVaultPopup {
     const noEntriesEl = document.getElementById("no-entries");
 
     loadingEl.classList.remove("hidden");
-    
+
     // Clear entries list safely
     while (entriesListEl.firstChild) {
       entriesListEl.removeChild(entriesListEl.firstChild);
@@ -562,16 +573,17 @@ class KnowledgeVaultPopup {
       }
     } catch (error) {
       console.error("Error loading recent entries:", error);
-      
+
       // Clear existing content
       while (noEntriesEl.firstChild) {
         noEntriesEl.removeChild(noEntriesEl.firstChild);
       }
-      
+
       const errorParagraph = document.createElement("p");
-      errorParagraph.textContent = "Failed to load entries. Please check your connection.";
+      errorParagraph.textContent =
+        "Failed to load entries. Please check your connection.";
       noEntriesEl.appendChild(errorParagraph);
-      
+
       noEntriesEl.classList.remove("hidden");
     } finally {
       loadingEl.classList.add("hidden");
@@ -595,30 +607,30 @@ class KnowledgeVaultPopup {
     const titleDiv = document.createElement("div");
     titleDiv.className = "entry-title";
     titleDiv.textContent = entry.title; // Using textContent is already safe, no need for escapeHtml
-    
+
     // Create entry meta container
     const metaDiv = document.createElement("div");
     metaDiv.className = "entry-meta";
-    
+
     // Create type span
     const typeSpan = document.createElement("span");
     typeSpan.className = `entry-type ${entry.type.toLowerCase()}`;
     typeSpan.textContent = entry.type.toLowerCase();
-    
+
     // Create date span
     const dateSpan = document.createElement("span");
     dateSpan.textContent = date;
-    
+
     metaDiv.appendChild(typeSpan);
     metaDiv.appendChild(dateSpan);
-    
+
     // Create tags span if tags exist
     if (tags) {
       const tagsSpan = document.createElement("span");
       tagsSpan.textContent = tags;
       metaDiv.appendChild(tagsSpan);
     }
-    
+
     // Assemble the entry element
     entryEl.appendChild(titleDiv);
     entryEl.appendChild(metaDiv);

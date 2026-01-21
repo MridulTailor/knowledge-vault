@@ -16,6 +16,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   entries       Entry[]
+  collections   Collection[]
   relationships Relationship[] @relation("RelationshipFrom")
   
   @@map("users")
@@ -42,6 +43,7 @@ model Entry {
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   tags        EntryTag[]
+  collections CollectionEntry[]
   fromRelations Relationship[] @relation("FromEntry")
   toRelations   Relationship[] @relation("ToEntry")
   
@@ -96,4 +98,30 @@ model Relationship {
   
   @@unique([fromEntryId, toEntryId, type])
   @@map("relationships")
+}
+
+model Collection {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  entries     CollectionEntry[]
+  
+  @@map("collections")
+}
+
+model CollectionEntry {
+  collectionId String
+  entryId      String
+  
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  entry        Entry      @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  
+  @@id([collectionId, entryId])
+  @@map("collection_entries")
 }

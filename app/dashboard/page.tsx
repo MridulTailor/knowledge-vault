@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { useQuery, useMutation } from "@/lib/graphql/client";
 import { MainLayout } from "@/components/layout/main-layout";
@@ -12,32 +12,10 @@ import { FloatingActionButton } from "@/components/ui/floating-action-button";
 import { EntryDetail } from "@/components/entries/entry-detail";
 import { EntryForm } from "@/components/entries/entry-form";
 import { ExportImport } from "@/components/entries/export-import";
+import { CollectionList } from "@/components/collections/collection-list";
+import { CollectionDetail } from "@/components/collections/collection-detail";
+import { AddToCollectionDialog } from "@/components/collections/add-to-collection-dialog";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { EntryCard } from "@/components/entries/entry-card";
-import {
-  Zap,
-  User,
-  LogOut,
-  Search,
-  Download,
-  Plus,
-  Sparkles,
-  FileText,
-  Code,
-  Bookmark,
-  Users,
-  Network,
-} from "lucide-react";
 
 const ENTRIES_QUERY = `
   query Entries($search: String, $tagNames: [String!], $type: EntryType) {
@@ -96,13 +74,19 @@ const DELETE_ENTRY_MUTATION = `
 export default function Dashboard() {
   const { user, logout, loading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const viewFromUrl = searchParams?.get('view') || 'home';
+  
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState("all"); // Updated default value
+  const [selectedType, setSelectedType] = useState("all");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<any>(null);
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
+  const [selectedCollectionId, setSelectedCollectionId] = useState<string | null>(null);
+  const [collectionEntryId, setCollectionEntryId] = useState<string | null>(null);
   const [showExportImport, setShowExportImport] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
   // Redirect to auth if user is not authenticated
   useEffect(() => {
@@ -111,11 +95,11 @@ export default function Dashboard() {
     }
   }, [user, loading, router]);
 
-  const handleLogout = () => {
-    logout();
-    toast.success("Logged out successfully");
-    router.push("/auth");
-  };
+  // Reset selections when switching views
+  useEffect(() => {
+    setSelectedEntry(null);
+    setSelectedCollectionId(null);
+  }, [viewFromUrl]);
 
   const { data: entriesData, refetch: refetchEntries } = useQuery<{
     entries: any[];
@@ -124,7 +108,7 @@ export default function Dashboard() {
     {
       search: searchTerm || undefined,
       tagNames: selectedTags.length > 0 ? selectedTags : undefined,
-      type: selectedType === "all" ? undefined : selectedType, // Updated condition
+      type: selectedType === "all" ? undefined : selectedType,
     },
     [searchTerm, selectedTags, selectedType]
   );
@@ -136,15 +120,15 @@ export default function Dashboard() {
   );
 
   const handleDeleteEntry = async (id: string) => {
-    if (confirm("Are you sure you want to delete this entry?")) {
+    if (confirm("Are you sure you want to delete this memory?")) {
       try {
         await deleteEntryMutation.execute({ id });
         refetchEntries();
-        setSelectedEntry(null); // Close detail view if open
-        toast.success("Entry deleted successfully");
+        setSelectedEntry(null);
+        toast.success("Memory deleted successfully");
       } catch (error: any) {
         console.error("Failed to delete entry:", error);
-        toast.error("Failed to delete entry: " + error.message);
+        toast.error("Failed to delete memory: " + error.message);
       }
     }
   };
@@ -154,7 +138,9 @@ export default function Dashboard() {
     setEditingEntry(null);
     refetchEntries();
     toast.success(
-      editingEntry ? "Entry updated successfully" : "Entry created successfully"
+      editingEntry
+        ? "Memory updated successfully"
+        : "Memory created successfully"
     );
   };
 
@@ -163,19 +149,41 @@ export default function Dashboard() {
     setShowForm(true);
   };
 
-  const toggleTag = (tagName: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tagName)
-        ? prev.filter((t) => t !== tagName)
-        : [...prev, tagName]
-    );
-  };
-
   const handleNavigateToEntry = (entryId: string) => {
     const entry = entriesData?.entries.find((e) => e.id === entryId);
     if (entry) {
       setSelectedEntry(entry);
     }
+  };
+
+  const handleAddToCollection = (id: string) => {
+    setCollectionEntryId(id);
+  };
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setSelectedType("all");
+    setSelectedTags([]);
+  };
+
+  const getFilteredEntries = () => {
+    if (!entriesData?.entries) return [];
+
+    let filtered = entriesData.entries;
+
+    // Filter is already applied by the GraphQL query based on selectedType
+    // No additional filtering needed here
+
+    return filtered;
+  };
+
+  const getRecentActivity = () => {
+    if (!entriesData?.entries) return 0;
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return entriesData.entries.filter(
+      (entry) => new Date(entry.updatedAt) > weekAgo
+    ).length;
   };
 
   // Show loading state while checking authentication
@@ -205,267 +213,158 @@ export default function Dashboard() {
     return null;
   }
 
+  const sidebarProps = {
+    onShowSearch: () => setShowSearch(!showSearch),
+    onShowForm: () => setShowForm(true),
+    onShowExportImport: () => setShowExportImport(true),
+  };
+
+  // Export/Import View
   if (showExportImport) {
     return (
-      <div className="min-h-screen bg-background py-8">
-        <div className="container mx-auto px-6 max-w-4xl">
-          <ExportImport onClose={() => setShowExportImport(false)} />
+      <MainLayout sidebarProps={sidebarProps}>
+        <div className="h-full overflow-auto p-8">
+          <div className="max-w-4xl mx-auto">
+            <ExportImport onClose={() => setShowExportImport(false)} />
+          </div>
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
+  // Entry Form View
   if (showForm) {
     return (
-      <div className="min-h-screen bg-background py-8">
-        <div className="container mx-auto px-6">
-          <EntryForm
-            entry={editingEntry}
-            onSuccess={handleFormSuccess}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingEntry(null);
-            }}
-          />
+      <MainLayout sidebarProps={sidebarProps}>
+        <div className="h-full overflow-auto p-8">
+          <div className="max-w-4xl mx-auto">
+            <EntryForm
+              entry={editingEntry}
+              onSuccess={handleFormSuccess}
+              onCancel={() => {
+                setShowForm(false);
+                setEditingEntry(null);
+              }}
+            />
+          </div>
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
+  // Entry Detail View
   if (selectedEntry) {
     return (
-      <div className="min-h-screen bg-background py-8">
-        <div className="container mx-auto px-6 max-w-4xl">
-          <EntryDetail
-            entry={selectedEntry}
-            onEdit={handleEditEntry}
-            onDelete={handleDeleteEntry}
-            onBack={() => setSelectedEntry(null)}
-            onNavigateToEntry={handleNavigateToEntry}
-            onRefresh={() => {
-              refetchEntries();
-              // Update the selected entry with fresh data
-              const updatedEntry = entriesData?.entries.find(
-                (e) => e.id === selectedEntry.id
-              );
-              if (updatedEntry) {
-                setSelectedEntry(updatedEntry);
-              }
-            }}
-          />
+      <MainLayout sidebarProps={sidebarProps}>
+        <div className="h-full overflow-auto p-8">
+          <div className="max-w-4xl mx-auto">
+            <EntryDetail
+              entry={selectedEntry}
+              onEdit={handleEditEntry}
+              onDelete={handleDeleteEntry}
+              onBack={() => setSelectedEntry(null)}
+              onNavigateToEntry={handleNavigateToEntry}
+              onRefresh={() => {
+                refetchEntries();
+                const updatedEntry = entriesData?.entries.find(
+                  (e) => e.id === selectedEntry.id
+                );
+                if (updatedEntry) {
+                  setSelectedEntry(updatedEntry);
+                }
+              }}
+            />
+          </div>
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Futuristic Header */}
-      <header className="glass-effect border-b border-border/50 sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <Zap className="h-4 w-4 text-primary-foreground" />
-              </div>
-              <h1 className="text-xl font-semibold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                Knowledge Vault
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground px-3 py-1.5 rounded-lg bg-card/50 border border-border/50">
-                <User className="h-4 w-4" />
-                <span>{user?.email}</span>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleLogout}
-                className="hover:bg-destructive/10 hover:text-destructive transition-colors"
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto px-6 py-8">
-        {/* Enhanced Controls Section */}
-        <div className="mb-8 space-y-6 animate-fade-in">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center space-x-4 flex-1 min-w-0">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search your knowledge..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-card/50 border-border/50 focus:border-primary/50 focus:bg-card transition-all duration-200"
-                />
-              </div>
-              <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger className="w-48 bg-card/50 border-border/50 hover:border-primary/30 transition-colors">
-                  <SelectValue placeholder="All types" />
-                </SelectTrigger>
-                <SelectContent className="bg-card border-border/50">
-                  <SelectItem value="all">All types</SelectItem>
-                  <SelectItem value="ARTICLE">📄 Articles</SelectItem>
-                  <SelectItem value="CODE_SNIPPET">💻 Code</SelectItem>
-                  <SelectItem value="BOOKMARK">🔖 Bookmarks</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex space-x-3">
-              <Button
-                variant="outline"
-                onClick={() => router.push("/graph")}
-                className="border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200"
-              >
-                <Network className="h-4 w-4 mr-2" />
-                Knowledge Graph
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setShowExportImport(true)}
-                className="border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export/Import
-              </Button>
-              <Button
-                onClick={() => setShowForm(true)}
-                className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-200"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                New Entry
-              </Button>
-            </div>
-          </div>
-
-          {/* Futuristic Tag Filters */}
-          {tagsData?.tags && (
-            <div className="flex flex-wrap gap-2 items-center animate-slide-in">
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <Sparkles className="h-4 w-4" />
-                <span>Filter by tags:</span>
-              </div>
-              {tagsData.tags.slice(0, 12).map((tag) => (
-                <Badge
-                  key={tag.id}
-                  variant={
-                    selectedTags.includes(tag.name) ? "default" : "outline"
-                  }
-                  className={`cursor-pointer transition-all duration-200 hover:scale-105 ${
-                    selectedTags.includes(tag.name)
-                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                      : "border-border/50 hover:border-primary/30 hover:bg-primary/5"
-                  }`}
-                  onClick={() => toggleTag(tag.name)}
-                >
-                  {tag.name}
-                </Badge>
-              ))}
-            </div>
-          )}
-
-          {/* Stats Section */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="glass-effect rounded-lg p-4 border border-border/50">
-              <div className="flex items-center space-x-2">
-                <FileText className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {entriesData?.entries.filter((e) => e.type === "ARTICLE")
-                      .length || 0}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Articles</p>
-                </div>
-              </div>
-            </div>
-            <div className="glass-effect rounded-lg p-4 border border-border/50">
-              <div className="flex items-center space-x-2">
-                <Code className="h-5 w-5 text-accent" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {entriesData?.entries.filter(
-                      (e) => e.type === "CODE_SNIPPET"
-                    ).length || 0}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Code Snippets</p>
-                </div>
-              </div>
-            </div>
-            <div className="glass-effect rounded-lg p-4 border border-border/50">
-              <div className="flex items-center space-x-2">
-                <Bookmark className="h-5 w-5 text-yellow-500" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {entriesData?.entries.filter((e) => e.type === "BOOKMARK")
-                      .length || 0}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Bookmarks</p>
-                </div>
-              </div>
-            </div>
-            <div className="glass-effect rounded-lg p-4 border border-border/50">
-              <div className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-emerald-500" />
-                <div>
-                  <p className="text-2xl font-bold text-foreground">
-                    {tagsData?.tags.length || 0}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Tags</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Enhanced Entries Grid */}
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {entriesData?.entries.map((entry: any, index: number) => (
-            <div
-              key={entry.id}
-              className="animate-fade-in"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              <EntryCard
-                entry={entry}
-                onEdit={handleEditEntry}
-                onDelete={handleDeleteEntry}
-                onSelect={setSelectedEntry}
+  // Collections View
+  if (viewFromUrl === "collections") {
+    if (selectedCollectionId) {
+      return (
+        <MainLayout sidebarProps={sidebarProps}>
+          <div className="h-full overflow-auto p-8">
+            <div className="max-w-4xl mx-auto">
+              <CollectionDetail
+                collectionId={selectedCollectionId}
+                onBack={() => setSelectedCollectionId(null)}
+                onEditEntry={handleEditEntry}
+                onNavigateToEntry={(id) => {
+                  handleNavigateToEntry(id);
+                  // We stay in collections view but might want to see details
+                }}
               />
             </div>
-          ))}
+          </div>
+        </MainLayout>
+      );
+    }
+
+    return (
+      <MainLayout sidebarProps={sidebarProps}>
+        <div className="h-full overflow-auto p-8">
+          <div className="max-w-4xl mx-auto">
+            <CollectionList onSelectCollection={setSelectedCollectionId} />
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
+  const filteredEntries = getFilteredEntries();
+
+  return (
+    <MainLayout sidebarProps={sidebarProps}>
+      <div className="h-full overflow-auto">
+        <div className="p-8 space-y-8">
+          {/* Welcome Banner */}
+          <WelcomeBanner
+            userName={user?.name || user?.email?.split("@")[0]}
+            totalMemories={entriesData?.entries.length || 0}
+            recentActivity={getRecentActivity()}
+            onQuickAdd={() => setShowForm(true)}
+          />
+
+          {/* Search Bar */}
+          {(showSearch || searchTerm || selectedTags.length > 0) && (
+            <SearchBar
+              onSearch={setSearchTerm}
+              onTypeFilter={setSelectedType}
+              onTagFilter={setSelectedTags}
+              availableTags={tagsData?.tags || []}
+            />
+          )}
+
+          {/* Memory Grid */}
+          <MemoryGrid
+            memories={filteredEntries}
+            onEdit={handleEditEntry}
+            onDelete={handleDeleteEntry}
+            onSelect={setSelectedEntry}
+            onAddNew={() => setShowForm(true)}
+            searchQuery={searchTerm}
+            selectedType={selectedType}
+            title={
+              viewFromUrl === "home"
+                ? "Your Memories"
+                : viewFromUrl === "collections"
+                ? "Collections"
+                : "Your Memories"
+            }
+            onAddToCollection={handleAddToCollection}
+          />
         </div>
 
-        {/* Enhanced Empty State */}
-        {entriesData?.entries.length === 0 && (
-          <div className="text-center py-16 animate-fade-in">
-            <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
-              <Sparkles className="h-12 w-12 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">
-              {searchTerm || selectedTags.length > 0 || selectedType !== "all"
-                ? "No entries found"
-                : "Start building your knowledge vault"}
-            </h3>
-            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              {searchTerm || selectedTags.length > 0 || selectedType !== "all"
-                ? "Try adjusting your search criteria or filters"
-                : "Create your first entry to begin organizing your digital knowledge"}
-            </p>
-            <Button
-              onClick={() => setShowForm(true)}
-              className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-200"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create First Entry
-            </Button>
-          </div>
-        )}
+        {/* Floating Action Button */}
+        <FloatingActionButton onClick={() => setShowForm(true)} />
+
+        <AddToCollectionDialog 
+          entryId={collectionEntryId} 
+          onOpenChange={(open) => !open && setCollectionEntryId(null)} 
+        />
       </div>
-    </div>
+    </MainLayout>
   );
 }

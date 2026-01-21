@@ -76,7 +76,7 @@ export function SearchBar({
           value={query}
           onChange={(e) => handleQueryChange(e.target.value)}
           placeholder={placeholder}
-          className="pl-12 pr-20 h-12 bg-card/50 border-border/50 focus:border-primary/50 focus:bg-card transition-all duration-200 text-base"
+          className="pl-12 pr-20 h-12 text-base"
         />
         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center space-x-1">
           <Button
@@ -84,8 +84,8 @@ export function SearchBar({
             size="sm"
             onClick={() => setShowFilters(!showFilters)}
             className={cn(
-              "h-8 w-8 p-0 hover:bg-muted/50",
-              showFilters && "bg-primary/10 text-primary"
+              "h-8 w-8 p-0",
+              showFilters && "bg-accent"
             )}
           >
             <Filter className="h-4 w-4" />
@@ -95,7 +95,7 @@ export function SearchBar({
               variant="ghost"
               size="sm"
               onClick={clearFilters}
-              className="h-8 w-8 p-0 hover:bg-destructive/10 hover:text-destructive"
+              className="h-8 w-8 p-0"
             >
               <X className="h-4 w-4" />
             </Button>
@@ -105,9 +105,9 @@ export function SearchBar({
 
       {/* Filters Panel */}
       {showFilters && (
-        <div className="glass-effect rounded-lg p-4 border border-border/50 space-y-4 animate-slide-in">
+        <div className="bg-card rounded-lg p-4 border space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-foreground">Filters</h3>
+            <h3 className="text-sm font-medium">Filters</h3>
             <Button
               variant="ghost"
               size="sm"
@@ -124,7 +124,7 @@ export function SearchBar({
               Type
             </label>
             <Select value={selectedType} onValueChange={handleTypeChange}>
-              <SelectTrigger className="bg-card/50 border-border/50">
+              <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -149,12 +149,7 @@ export function SearchBar({
                     variant={
                       selectedTags.includes(tag.name) ? "default" : "outline"
                     }
-                    className={cn(
-                      "cursor-pointer transition-all duration-200 hover:scale-105",
-                      selectedTags.includes(tag.name)
-                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                        : "border-border/50 hover:border-primary/30 hover:bg-primary/5"
-                    )}
+                    className="cursor-pointer"
                     onClick={() => toggleTag(tag.name)}
                     style={{
                       backgroundColor: selectedTags.includes(tag.name)

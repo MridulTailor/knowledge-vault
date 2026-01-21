@@ -22,6 +22,17 @@ export const typeDefs = gql`
     name: String
     createdAt: String!
     entries: [Entry!]!
+    collections: [Collection!]!
+  }
+
+  type Collection {
+    id: ID!
+    name: String!
+    description: String
+    createdAt: String!
+    updatedAt: String!
+    entries: [Entry!]!
+    user: User!
   }
 
   type Entry {
@@ -86,6 +97,18 @@ export const typeDefs = gql`
     description: String
   }
 
+  input CreateCollectionInput {
+    name: String!
+    description: String
+    entryIds: [ID!]
+  }
+
+  input UpdateCollectionInput {
+    name: String
+    description: String
+    entryIds: [ID!]
+  }
+
   type AuthPayload {
     token: String!
     user: User!
@@ -97,6 +120,8 @@ export const typeDefs = gql`
     entry(id: ID!): Entry
     tags: [Tag!]!
     relationships: [Relationship!]!
+    collections: [Collection!]!
+    collection(id: ID!): Collection
   }
 
   type Mutation {
@@ -108,5 +133,10 @@ export const typeDefs = gql`
     createRelationship(input: CreateRelationshipInput!): Relationship!
     deleteRelationship(id: ID!): Boolean!
     createTag(name: String!, color: String): Tag!
+    createCollection(input: CreateCollectionInput!): Collection!
+    updateCollection(id: ID!, input: UpdateCollectionInput!): Collection!
+    deleteCollection(id: ID!): Boolean!
+    addEntryToCollection(collectionId: ID!, entryId: ID!): Collection!
+    removeEntryFromCollection(collectionId: ID!, entryId: ID!): Collection!
   }
 `

@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Code, Link, Trash2, Edit, Calendar } from "lucide-react";
+import { BookOpen, Code, Link, Trash2, Edit, Calendar, FolderPlus } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 interface EntryCardProps {
@@ -33,6 +33,7 @@ interface EntryCardProps {
   onEdit: (entry: any) => void;
   onDelete: (id: string) => void;
   onSelect: (entry: any) => void;
+  onAddToCollection?: (id: string) => void;
 }
 
 const getEntryIcon = (type: string) => {
@@ -71,8 +72,9 @@ export function EntryCard({
   onEdit,
   onDelete,
   onSelect,
+  onAddToCollection,
 }: EntryCardProps) {
-  const totalRelations = entry.fromRelations.length + entry.toRelations.length;
+  const totalRelations = (entry.fromRelations?.length || 0) + (entry.toRelations?.length || 0);
 
   const renderContent = () => {
     if (entry.type === "BOOKMARK" && entry.url) {
@@ -130,59 +132,36 @@ export function EntryCard({
     );
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "ARTICLE":
-        return "text-primary";
-      case "CODE_SNIPPET":
-        return "text-accent";
-      case "BOOKMARK":
-        return "text-yellow-500";
-      default:
-        return "text-muted-foreground";
-    }
-  };
 
-  const getTypeGradient = (type: string) => {
-    switch (type) {
-      case "ARTICLE":
-        return "from-primary/20 to-primary/5";
-      case "CODE_SNIPPET":
-        return "from-accent/20 to-accent/5";
-      case "BOOKMARK":
-        return "from-yellow-500/20 to-yellow-500/5";
-      default:
-        return "from-muted/20 to-muted/5";
-    }
-  };
 
   return (
-    <Card className="group glass-effect hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 cursor-pointer overflow-hidden">
-      {/* Gradient background effect */}
-      <div
-        className={`absolute inset-0 bg-gradient-to-br ${getTypeGradient(
-          entry.type
-        )} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
-      ></div>
-
-      <CardHeader className="pb-3 relative">
-        <div className="flex items-start justify-between">
+    <Card className="group relative hover:shadow-md transition-shadow cursor-pointer overflow-hidden">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between gap-2">
           <div className="flex items-center space-x-3 flex-1 min-w-0">
-            <div
-              className={`${getTypeColor(
-                entry.type
-              )} transition-colors duration-200`}
-            >
+            <div className="text-accent/80">
               {getEntryIcon(entry.type)}
             </div>
             <CardTitle
-              className="text-base line-clamp-2 font-semibold text-foreground group-hover:text-primary transition-colors duration-200"
+              className="text-base line-clamp-2 font-semibold"
               onClick={() => onSelect(entry)}
             >
               {entry.title}
             </CardTitle>
           </div>
-          <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddToCollection?.(entry.id);
+              }}
+              className="h-8 w-8 p-0"
+              title="Add to Collection"
+            >
+              <FolderPlus className="h-3.5 w-3.5" />
+            </Button>
             <Button
               variant="ghost"
               size="sm"
@@ -190,9 +169,9 @@ export function EntryCard({
                 e.stopPropagation();
                 onEdit(entry);
               }}
-              className="h-7 w-7 p-0 hover:bg-primary/10 hover:text-primary"
+              className="h-8 w-8 p-0"
             >
-              <Edit className="h-3 w-3" />
+              <Edit className="h-3.5 w-3.5" />
             </Button>
             <Button
               variant="ghost"
@@ -201,29 +180,25 @@ export function EntryCard({
                 e.stopPropagation();
                 onDelete(entry.id);
               }}
-              className="h-7 w-7 p-0 hover:bg-destructive/10 hover:text-destructive"
+              className="h-8 w-8 p-0 hover:text-destructive"
             >
-              <Trash2 className="h-3 w-3" />
+              <Trash2 className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0 relative">
+      <CardContent className="pt-0">
         <div onClick={() => onSelect(entry)} className="space-y-4">
           {renderContent()}
 
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-3 border-t">
             <div className="flex flex-wrap gap-1.5">
               {entry.tags.slice(0, 3).map((tag) => (
                 <Badge
                   key={tag.id}
                   variant="outline"
-                  className="text-xs border-border/50 hover:border-primary/30 transition-colors duration-200"
-                  style={{
-                    backgroundColor: tag.color ? `${tag.color}15` : undefined,
-                    borderColor: tag.color ? `${tag.color}40` : undefined,
-                  }}
+                  className="text-xs font-normal"
                 >
                   {tag.name}
                 </Badge>
@@ -231,7 +206,7 @@ export function EntryCard({
               {entry.tags.length > 3 && (
                 <Badge
                   variant="outline"
-                  className="text-xs border-border/50 bg-muted/30"
+                  className="text-xs font-normal"
                 >
                   +{entry.tags.length - 3}
                 </Badge>
@@ -241,7 +216,7 @@ export function EntryCard({
             <div className="flex items-center space-x-3 text-xs text-muted-foreground">
               {totalRelations > 0 && (
                 <span className="flex items-center space-x-1">
-                  <div className="w-1 h-1 bg-primary rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
                   <span>
                     {totalRelations} link{totalRelations !== 1 ? "s" : ""}
                   </span>
