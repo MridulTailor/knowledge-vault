@@ -60,7 +60,8 @@ export default function GraphPage() {
 
   // Redirect to auth if user is not authenticated
   useEffect(() => {
-    if (!loading && !user) {
+    const hasToken = typeof window !== "undefined" && !!localStorage.getItem("token");
+    if (!loading && !user && !hasToken) {
       router.push("/auth");
     }
   }, [user, loading, router]);

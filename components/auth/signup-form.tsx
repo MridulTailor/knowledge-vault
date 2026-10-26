@@ -2,12 +2,15 @@
 
 import type React from "react";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { OAuthButtons } from "@/components/auth/oauth-buttons";
+import { ErrorAlert } from "@/components/ui/error-alert";
+import { formatClientError, type FormattedError } from "@/lib/errors";
 import {
   Card,
   CardContent,
@@ -27,13 +30,33 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState<FormattedError | null>(null);
+  const [errorId, setErrorId] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<string | null>(null);
   const { signup } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const errorCode = searchParams.get("error_code");
+    const rawError = searchParams.get("error");
+    const id = searchParams.get("error_id");
+    const details = searchParams.get("error_details");
+
+    if (errorCode || rawError) {
+      const formatted = formatClientError(errorCode || decodeURIComponent(rawError || ""));
+      setError(formatted);
+      setErrorId(id);
+      setErrorDetails(details);
+      toast.error(formatted.title, { description: formatted.message });
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError(null);
+    setErrorId(null);
+    setErrorDetails(null);
 
     try {
       await signup(email, password, name || undefined);
@@ -41,10 +64,9 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
         "Account created successfully! Welcome to Knowledge Vault!"
       );
       router.push("/dashboard");
-    } catch (err: any) {
-      const errorMessage = err.message || "Signup failed";
-      setError(errorMessage);
-      toast.error(errorMessage);
+    } catch (err: unknown) {
+      const formatted = formatClientError(err);
+      setError(formatted);
     }
   };
 
@@ -61,15 +83,17 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
           <CardTitle className="text-3xl font-bold text-gradient-primary">
             Join Knowledge Vault
           </CardTitle>
-
         </div>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-5">
           {error && (
-            <div className="p-4 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-xl animate-slide-in backdrop-blur-sm">
-              {error}
-            </div>
+            <ErrorAlert
+              error={error}
+              errorId={errorId}
+              details={errorDetails}
+              onDismiss={() => setError(null)}
+            />
           )}
           <div className="space-y-2">
             <Label htmlFor="name" className="text-sm font-semibold">
@@ -130,7 +154,10 @@ export function SignupForm({ onToggleMode }: SignupFormProps) {
           >
             Create Account
           </Button>
-          <p className="text-sm text-muted-foreground">
+
+          <OAuthButtons returnUrl="/dashboard" />
+
+          <p className="text-sm text-muted-foreground pt-2">
             Already have an account?{" "}
             <button
               type="button"

@@ -4,11 +4,12 @@ A modern personal knowledge management system with interactive graph visualizati
 
 ## ✨ Features
 
+- **OAuth 2.0 & OpenID Connect (OIDC)**: Seamless social login with Google (OIDC with PKCE) and offline Dev OIDC provider
 - **Smart Content Management**: Articles, code snippets, and bookmarks with rich editing
 - **Interactive Knowledge Graph**: D3.js-powered visualization of your knowledge network
 - **Advanced Search & Tagging**: Full-text search with customizable, color-coded tags
 - **Semantic Relationships**: Connect entries with typed relationships (related, references, builds on, etc.)
-- **Browser Extension**: Save content from any webpage with Chrome/Edge extension
+- **Browser Extension**: Save content from any webpage with Chrome/Edge extension (integrated OAuth flow)
 - **Data Export/Import**: JSON and Markdown format support
 - **Modern UI**: Responsive design with dark/light theme
 
@@ -27,8 +28,12 @@ npm install
 1. Create `.env` file:
 
 ```env
-DATABASE_URL="file:./dev.db"  # or PostgreSQL for production
+DATABASE_URL="postgresql://user:password@localhost:5432/knowledge_vault"
 JWT_SECRET="your-secure-secret-min-32-chars"
+
+# Optional: Google OAuth 2.0 / OIDC credentials
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
 ```
 
 2. Initialize database:

@@ -8,6 +8,7 @@ const { mockPrisma } = vi.hoisted(() => {
             collection: {
                 findMany: vi.fn(),
                 findFirst: vi.fn(),
+                findUnique: vi.fn(),
                 create: vi.fn(),
                 update: vi.fn(),
                 delete: vi.fn(),
@@ -145,12 +146,12 @@ describe('Collection Resolvers', () => {
             expect(result).toBe(true)
         })
 
-        it('returns false if collection not found', async () => {
+        it('throws error if collection not found', async () => {
             mockPrisma.collection.findFirst.mockResolvedValue(null)
 
-            const result = await resolvers.Mutation.deleteCollection(null, { id: 'non-existent' }, context)
-
-            expect(result).toBe(false)
+            await expect(
+                resolvers.Mutation.deleteCollection(null, { id: 'non-existent' }, context)
+            ).rejects.toThrow('Collection not found')
         })
     })
 
@@ -201,6 +202,7 @@ describe('Collection Resolvers', () => {
             }
 
             mockPrisma.collection.findFirst.mockResolvedValue(mockCollection)
+            mockPrisma.collection.findUnique.mockResolvedValue(mockCollection)
             mockPrisma.collectionEntry.delete.mockResolvedValue({})
             mockPrisma.collection.update.mockResolvedValue(mockCollection)
 

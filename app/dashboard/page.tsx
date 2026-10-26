@@ -90,7 +90,8 @@ export default function Dashboard() {
 
   // Redirect to auth if user is not authenticated
   useEffect(() => {
-    if (!loading && !user) {
+    const hasToken = typeof window !== "undefined" && !!localStorage.getItem("token");
+    if (!loading && !user && !hasToken) {
       router.push("/auth");
     }
   }, [user, loading, router]);
@@ -186,8 +187,9 @@ export default function Dashboard() {
     ).length;
   };
 
-  // Show loading state while checking authentication
-  if (loading) {
+  // Show loading state while checking authentication or hydrating session
+  const hasToken = typeof window !== "undefined" && !!localStorage.getItem("token");
+  if (loading || (!user && hasToken)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center space-y-6">

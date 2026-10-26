@@ -2,19 +2,20 @@
 
 import type React from "react";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { graphqlClient, useMutation } from "@/lib/graphql/client";
 
-interface User {
+export interface User {
   id: string;
   email: string;
   name?: string;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name?: string) => Promise<void>;
+  setSession: (token: string, user?: User) => Promise<User | null>;
   logout: () => void;
   loading: boolean;
 }
@@ -68,52 +69,82 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     SIGNUP_MUTATION
   );
 
+  const fetchCurrentUser = useCallback(async (token: string) => {
+    graphqlClient.setToken(token);
+    try {
+      const data = await graphqlClient.request<{ me: User }>(ME_QUERY);
+      if (data?.me) {
+        setUser(data.me);
+        return data.me;
+      }
+      return null;
+    } catch (err) {
+      console.error("Failed to fetch current user with token:", err);
+      localStorage.removeItem("token");
+      graphqlClient.setToken(null);
+      setUser(null);
+      return null;
+    } finally {
+      setInitialLoading(false);
+    }
+  }, []);
+
   // Check if user is authenticated on mount
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      graphqlClient.setToken(token);
-      // Fetch user data
-      graphqlClient
-        .request<{ me: User }>(ME_QUERY)
-        .then((data) => {
-          if (data.me) {
-            setUser(data.me);
-          }
-        })
-        .catch(() => {
-          // Token is invalid, remove it
-          localStorage.removeItem("token");
-          graphqlClient.setToken(null);
-        })
-        .finally(() => {
-          setInitialLoading(false);
-        });
+      fetchCurrentUser(token);
     } else {
       setInitialLoading(false);
     }
-  }, []);
+
+    // Handle cross-tab token synchronization
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "token") {
+        if (e.newValue) {
+          fetchCurrentUser(e.newValue);
+        } else {
+          setUser(null);
+          graphqlClient.setToken(null);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [fetchCurrentUser]);
+
+  const setSession = async (token: string, userData?: User): Promise<User | null> => {
+    localStorage.setItem("token", token);
+    graphqlClient.setToken(token);
+
+    if (userData) {
+      setUser(userData);
+      setInitialLoading(false);
+      return userData;
+    }
+
+    setInitialLoading(true);
+    return fetchCurrentUser(token);
+  };
 
   const login = async (email: string, password: string) => {
     const result = await loginMutation.execute({ email, password });
     const { token, user: userData } = result.login;
 
-    graphqlClient.setToken(token);
-    setUser(userData);
+    await setSession(token, userData);
   };
 
   const signup = async (email: string, password: string, name?: string) => {
     const result = await signupMutation.execute({ email, password, name });
     const { token, user: userData } = result.signup;
 
-    graphqlClient.setToken(token);
-    setUser(userData);
+    await setSession(token, userData);
   };
 
   const logout = () => {
     graphqlClient.setToken(null);
     setUser(null);
-    // Ensure localStorage is cleared
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
     }
@@ -125,6 +156,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         login,
         signup,
+        setSession,
         logout,
         loading: initialLoading,
       }}

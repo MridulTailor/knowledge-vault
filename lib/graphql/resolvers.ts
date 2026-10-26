@@ -216,7 +216,7 @@ export const resolvers = {
         where: { email: args.email },
       })
 
-      if (!user || !(await verifyPassword(args.password, user.password))) {
+      if (!user || !user.password || !(await verifyPassword(args.password, user.password))) {
         throw new GraphQLError("Invalid email or password")
       }
 

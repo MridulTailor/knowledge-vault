@@ -35,8 +35,10 @@ class GraphQLClient {
       "Content-Type": "application/json",
     }
 
-    if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`
+    const activeToken =
+      this.token || (typeof window !== "undefined" ? localStorage.getItem("token") : null)
+    if (activeToken) {
+      headers.Authorization = `Bearer ${activeToken}`
     }
 
     const response = await fetch(this.baseUrl, {
